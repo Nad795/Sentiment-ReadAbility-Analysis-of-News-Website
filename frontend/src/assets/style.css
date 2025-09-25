@@ -1,0 +1,14 @@
+:root {
+  --primary-purple: #6540EF;
+  --primary-blue: #5094F1;
+  --light-blue: #8AB7F6;
+  --dark-purple: #2A1B64;
+  --neutral-white: #F5F5F7;
+  --neutral-black: #1D1D1F;
+  --grey-500: #AEAEBC;
+  --border-radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
