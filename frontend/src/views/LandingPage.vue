@@ -1,24 +1,84 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const uploadedFile = ref<File|null>(null)
+const uploadedUrl = ref<string>('')
+const fileInput = ref<HTMLInputElement|null>(null)
+const isDragging = ref(false)
+
+onMounted(() => {
+  document.body.addEventListener('dragover', preventDefault)
+  document.body.addEventListener('drop', handleDrop)
+  document.body.addEventListener('paste', handlePaste)
+})
+
+onUnmounted(() => {
+  document.body.removeEventListener('dragover', preventDefault)
+  document.body.removeEventListener('drop', handleDrop)
+  document.body.removeEventListener('paste', handlePaste)
+})
 
 const uploadDocument = () => {
-  // TODO: Implement document upload functionality
-  console.log('Upload document clicked')
+  fileInput.value?.click()
 }
 
-const tryNow = () => {
-  // TODO: Implement try now functionality
-  console.log('Try now clicked')
+const handleFileChange = (e: Event) => {
+  const files = (e.target as HTMLInputElement).files
+  if (files && files[0]) {
+    uploadedFile.value = files[0]
+    alert(`File uploaded: ${files[0].name}`)
+    router.push('/analyze') // Redirect setelah upload
+  }
 }
 
-const login = () => {
-  // TODO: Implement login functionality
-  console.log('Login clicked')
+const handleDrop = (e: DragEvent) => {
+  e.preventDefault()
+  if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+    uploadedFile.value = e.dataTransfer.files[0]
+    alert(`File uploaded: ${e.dataTransfer.files[0].name}`)
+    router.push('/analyze') // Redirect setelah upload
+  }
+}
+
+const handlePaste = (e: ClipboardEvent) => {
+  // Paste file
+  if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+    uploadedFile.value = e.clipboardData.files[0]
+    alert(`File uploaded: ${e.clipboardData.files[0].name}`)
+    router.push('/analyze') // Redirect setelah upload
+    return
+  }
+  // Paste URL
+  const text = e.clipboardData?.getData('text')
+  if (text && (text.startsWith('http://') || text.startsWith('https://'))) {
+    uploadedUrl.value = text
+    alert(`URL pasted: ${text}`)
+    router.push('/analyze') // Redirect setelah upload
+  }
+}
+
+const preventDefault = (e: Event) => e.preventDefault()
+
+const goHome = () => {
+    window.location.href = '/'
 }
 </script>
 
 <template>
   <div class="landing-page">
+    <!-- Dropzone Overlay -->
+    <div v-if="isDragging" class="dropzone-overlay">
+      <div class="dropzone-message">
+        <svg width="64" height="64" fill="none" viewBox="0 0 24 24">
+          <path d="M6 20L18 20" stroke="#6540ef" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 16V4M12 4L15.5 7.5M12 4L8.5 7.5" stroke="#6540ef" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>Drop file anywhere</div>
+      </div>
+    </div>
 
     <!-- Background blur elements -->
     <div class="bg-blur blur-1"></div>
@@ -31,15 +91,13 @@ const login = () => {
       <header class="header">
         <div class="container">
           <div class="header-left">
-            <img src="/img/ReadaSense-logo.png" alt="ReadaSense Logo" class="logo-img" />
+            <img src="/img/ReadaSense-logo.png" alt="ReadaSense Logo" class="logo-img"/>
 
             <nav class="nav">
-              <button class="nav-btn">Home</button>
+              <button class="nav-btn" @click="goHome">Home</button>
               <button class="nav-btn">Tentang Kami</button>
             </nav>
           </div>
-
-          <button class="login-btn" @click="login">Login</button>
         </div>
       </header>
 
@@ -57,6 +115,13 @@ const login = () => {
                 </svg>
                 Upload Document
               </button>
+              <input
+                type="file"
+                ref="fileInput"
+                style="display:none"
+                accept=".pdf,.docx"
+                @change="handleFileChange"
+              />
             </div>
             <div class="hero-visual">
               <img src="/img/landing-page-img.png" alt="ReadaSense Landing Page Illustration" class="hero-main-img" />
@@ -154,7 +219,7 @@ const login = () => {
       <section class="cta">
         <div class="container">
           <img src="/img/CTA-Text.png" alt="Dapatkan insight yang lebih cepat, akurat, dan mendalam dari setiap artikel. Uji ReadaSense sekarang." class="cta-text-img" />
-          <button class="try-btn" @click="tryNow">Coba Sekarang!</button>
+          <button class="try-btn" @click="uploadDocument">Coba Sekarang!</button>
         </div>
       </section>
 
@@ -163,7 +228,7 @@ const login = () => {
         <div class="container">
           <div class="footer-content">
             <div class="footer-brand">
-              <img src="/img/ReadaSense-logo-white.png" alt="ReadaSense Logo" class="footer-logo" />
+              <img src="\img\ReadaSense-logo-white.png" alt="ReadaSense Logo" class="footer-logo" />
               <p class="footer-copyright">
                 Copyright © 2025 ReadaSense.<br>
                 All Rights Reserved.
@@ -239,6 +304,34 @@ const login = () => {
   z-index: 1;
 }
 
+/* Dropzone Overlay */
+.dropzone-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(101, 64, 239, 0.12);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: background 0.2s;
+}
+
+.dropzone-message {
+  border: 2px dashed var(--neutral-white);
+  border-radius: 16px;
+  padding: 48px 64px;
+  box-shadow: 0 8px 32px rgba(101,64,239,0.08);
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--neutral-white);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
 /* Header */
 .header {
   background: var(--neutral-white);
@@ -294,23 +387,6 @@ const login = () => {
 
 .nav-btn:hover {
   background: rgba(101, 64, 239, 0.1);
-}
-
-.login-btn {
-  background: var(--primary-purple);
-  color: var(--neutral-white);
-  border: none;
-  padding: 12px 16px;
-  border-radius: var(--border-radius);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.login-btn:hover {
-  background: var(--dark-purple);
 }
 
 /* Hero Section */
