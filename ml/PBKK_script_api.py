@@ -38,8 +38,7 @@ print(f" - BERT: {'yes' if API_KEY_BERT else 'no'}")
 
 # Endpoint untuk setiap API
 ENDPOINT_GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-# ENDPOINT_DEEPSEEK = "https://openrouter.ai/api/v1/chat/completions"
-ENDPOINT_DEEPSEEK = "https://api.deepseek.com/v1/chat/completions"
+ENDPOINT_DEEPSEEK = "https://openrouter.ai/api/v1/chat/completions"
 ENDPOINT_BERT = "https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment"
 
 
@@ -294,3 +293,4 @@ if __name__ == "__main__":
         print("HASIL ANALISIS KOMPARATIF")
         print("="*50)
         print(json.dumps(hasil_komparasi, indent=4, ensure_ascii=False))
+
