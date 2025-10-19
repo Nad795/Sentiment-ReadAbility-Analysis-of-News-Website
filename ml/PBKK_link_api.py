@@ -18,7 +18,7 @@ API_KEY_BERT = os.getenv("API_KEY_BERT")
 # Endpoint Model
 # ============================
 ENDPOINT_GEMINI = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-ENDPOINT_DEEPSEEK = "https://api.deepseek.com/v1/chat/completions"
+ENDPOINT_DEEPSEEK = "https://openrouter.ai/api/v1/chat/completions"
 ENDPOINT_BERT = "https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment"
 
 
