@@ -49,7 +49,7 @@
       </div>
     </div>
 
-    <div class="z-10 mt-32 mb-4 text-center" data-aos="fade-up" data-aos-delay="400">
+    <div class="z-10 mt-32 mb-4 text-center" data-aos="fade-up" data-aos-delay="300">
       <p
         class="max-w-4xl mx-auto text-lg font-bold text-black md:text-xl"
         style="font-size: 36px; line-height: 40px;"
@@ -68,7 +68,7 @@
         type="file"
         ref="fileInput"
         style="display:none"
-        accept=".pdf,.docx"
+        accept=".pdf,.docx,.txt"
         @change="handleFileChange"
       />
     </div>
@@ -83,7 +83,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 const cards = [
   {
@@ -106,9 +105,11 @@ const cards = [
   },
 ];
 
-const router = useRouter()
-const fileInput = ref<HTMLInputElement|null>(null)
-const uploadedFile = ref<File|null>(null)
+const emit = defineEmits<{
+  (e: 'file-uploaded', file: File): void
+}>()
+
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const uploadDocument = () => {
   fileInput.value?.click()
@@ -117,13 +118,9 @@ const uploadDocument = () => {
 const handleFileChange = (e: Event) => {
   const files = (e.target as HTMLInputElement).files
   if (files && files[0]) {
-    uploadedFile.value = files[0]
-    alert(`File uploaded: ${files[0].name}`)
-    router.push('/analisis/readability') // Redirect setelah upload
+    emit('file-uploaded', files[0])
   }
 }
-
-const preventDefault = (e: Event) => e.preventDefault()
 </script>
 
 <style scoped>

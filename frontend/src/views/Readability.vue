@@ -208,6 +208,121 @@ const fleschData = [
     formula: "0.0588 × L - 0.296 × S - 15.8",
   },
 ];
+// === Ambil data ===
+/*
+const stored = localStorage.getItem('analysisResult')
+if (!stored) {
+  const fleschData = [
+    {
+      score: 75.0,
+      description: 'INI ADALAH SAMPLE DATA. Berdasarkan Flesch Kincaid Reading Ease, teks ini memiliki  tingkat kemudahan membaca sekitar 75.0 dari 100. Teks ini dapat dengan mudah dipahami oleh remaja berusia 12 hingga 15 tahun.',
+      statistics: {
+          syllables: 548,
+          words: 132,
+          sentences: 21,
+          avgWordLength: 3.2,
+          avgSentenceLength: 6.5
+      },
+    },
+    {
+      title: "Flesch Kincaid Reading Ease",
+      score: 75,
+      level: "Mudah dibaca",
+      formula: "206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)",
+    },
+    {
+      title: "Flesch Kincaid Grade Level",
+      score: 75,
+      level: "Mudah dibaca",
+      formula: "206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)",
+    },
+    {
+      title: "Gunning Fog Index",
+      score: 68,
+      level: "Sedikit sulit",
+      formula: "0.4 × [(words/sentences) + 100 × (complex_words/words)]",
+    },
+    {
+      title: "SMOG Index",
+      score: 72,
+      level: "Cukup mudah",
+      formula: "1.0430 × √(polysyllables × (30/sentences)) + 3.1291",
+    },
+    {
+      title: "Coleman Liau Index",
+      score: 70,
+      level: "Mudah dibaca",
+      formula: "0.0588 × L - 0.296 × S - 15.8",
+    },
+  ];
+}
+
+interface Statistic {
+  syllables: number
+  words: number
+  sentences: number
+  avgWordLength: number
+  avgSentenceLength: number
+}
+
+interface ReadabilityResult {
+  flesch_kincaid_ease: { score: number; level: string; desc: string }
+  flesch_kincaid_grade: { score: number; level: string; }
+  gunning_fog: { score: number; level: string; }
+  smog: { score: number; level: string; }
+  coleman_liau: { score: number; level: string; }
+  statistics: Statistic
+}
+
+const fleschData = ref<any[]>([])
+
+onMounted(() => {
+  const saved = localStorage.getItem('analysisResult')
+  if (!saved) return
+
+  const parsed = JSON.parse(saved)
+  const readability: ReadabilityResult = parsed.readability
+
+  fleschData.value = [
+    {
+      score: readability.flesch_kincaid_ease.score,
+      description: readability.flesch_kincaid_ease.desc,
+      statistics: readability.statistics
+      },
+    },
+    {
+      title: "Flesch Kincaid Reading Ease",
+      score: readability.flesch_kincaid_ease.score,
+      level: readability.flesch_kincaid_ease.level,
+      formula: "206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)",
+    },
+    {
+      title: "Flesch Kincaid Grade Level",
+      score: readability.flesch_kincaid_grade.score,
+      level: readability.flesch_kincaid_grade.level,
+      formula: "206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)",
+    },
+    {
+      title: "Gunning Fog Index",
+      score: readability.gunning_fog.score,
+      level: readability.gunning_fog.level,
+      formula: "0.4 × [(words/sentences) + 100 × (complex_words/words)]",
+    },
+    {
+      title: "SMOG Index",
+      score: readability.smog.score,
+      level: readability.smog.level,
+      formula: "1.0430 × √(polysyllables × (30/sentences)) + 3.1291",
+    },
+    {
+      title: "Coleman Liau Index",
+      score: readability.coleman_liau.score,
+      level: readability.coleman_liau.level,
+      formula: "0.0588 × L - 0.296 × S - 15.8",
+    },
+  ]
+})
+*/
 
 // === Animasi Circle Bar ===
 const circumference = 2 * Math.PI * 80;

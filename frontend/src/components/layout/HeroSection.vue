@@ -1,25 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
-const fileInput = ref<HTMLInputElement|null>(null)
-const uploadedFile = ref<File|null>(null)
+const emit = defineEmits(["file-uploaded"]);
+
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const uploadDocument = () => {
   fileInput.value?.click()
 }
 
 const handleFileChange = (e: Event) => {
-  const files = (e.target as HTMLInputElement).files
-  if (files && files[0]) {
-    uploadedFile.value = files[0]
-    alert(`File uploaded: ${files[0].name}`)
-    router.push('/analisis/readability') // Redirect setelah upload
-  }
+  const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) emit("file-uploaded", file);
 }
-
-const preventDefault = (e: Event) => e.preventDefault()
 </script>
 
 <template>
@@ -41,7 +34,7 @@ const preventDefault = (e: Event) => e.preventDefault()
         type="file"
         ref="fileInput"
         style="display:none"
-        accept=".pdf,.docx"
+        accept=".pdf,.docx,.txt"
         @change="handleFileChange"
       />
     </div>

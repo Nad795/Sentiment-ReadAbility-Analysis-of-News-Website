@@ -388,6 +388,55 @@ const temaData = [
   { nama: "Kebijakan", magnitudo: 4.0, sentimen: -0.65 },
 ];
 
+// === Ambil data ===
+/* 
+const sentimentData = ref({
+  positive: 0,
+  negative: 0,
+  neutral: 0,
+  overallScore: 0,
+  overallSentiment: ''
+});
+
+const entitasData = ref([]);
+const temaData = ref([]);
+
+onMounted(() => {
+  const stored = localStorage.getItem("sentimentResult");
+  if (stored) {
+    const parsed = JSON.parse(stored);
+    const sentiment = parsed.sentiment;
+    sentimentData.value = {
+      positive: sentiment.positive ?? 0,
+      negative: sentiment.negative ?? 0,
+      neutral: sentiment.neutral ?? 0,
+      overallScore: sentiment.overallScore ?? 0,
+      overallSentiment: sentiment.overallSentiment ?? 'netral'
+    };
+    entitasData.value = sentiment.entities ?? [];
+    temaData.value = sentiment.themes ?? [];
+  } else {
+    sentimentData.value = {
+      positive: 50.0,
+      negative: 25.0,
+      neutral: 25.0,
+      overallScore: 0.50,
+      overallSentiment: 'positif'
+    };
+    entitasData.value = [
+      { nama: "ITS", magnitudo: 2.0, sentimen: 0.78 },
+      { nama: "Surabaya", magnitudo: 3.0, sentimen: 0.63 },
+      { nama: "Gedung DPR", magnitudo: 5.4, sentimen: -0.88 },
+    ];
+    temaData.value = [
+      { nama: "Kampus", magnitudo: 1.8, sentimen: 0.25 },
+      { nama: "Mahasiswa", magnitudo: 2.5, sentimen: 0.2 },
+      { nama: "Kebijakan", magnitudo: 4.0, sentimen: -0.65 },
+    ];
+  }
+});
+*/
+
 const radius = 108;
 const circumference = 2 * Math.PI * radius;
 
