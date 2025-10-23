@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: readasense-backend
+    env: php
+    plan: free
+    rootDir: backend
+    buildCommand: |
+      composer install
+      php artisan key:generate
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
