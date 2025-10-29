@@ -2,14 +2,17 @@
   <div class="min-h-screen bg-primarywhite">
     <HeroSection 
       @file-uploaded="handleFileUpload"
+      @text-uploaded="handleTextUpload"
     />
     <FiturSection />
     <CardSection 
       @file-uploaded="handleFileUpload"
+      @text-uploaded="handleTextUpload"
     />
     <FileUpload 
       @file-uploaded="handleFileUpload" 
       @url-uploaded="handleUrlUpload"
+      @text-uploaded="handleTextUpload"
     />
 
     <!-- Overlay loading -->
@@ -26,6 +29,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, ref, onMounted } from "vue"
 import { useRouter } from 'vue-router'
+import { ApiService } from '@/services/api'
 
 const HeroSection = defineAsyncComponent(
   () => import("@/components/layout/HeroSection.vue")
@@ -44,51 +48,120 @@ const router = useRouter()
 const loading = ref(false)
 
 onMounted(() => {
-  localStorage.clear()
+  // Jangan clear localStorage agar bisa debug
+  console.log('Home component mounted')
+  console.log('Current localStorage:', localStorage.getItem('analysisResult'))
 })
 
-const handleFileUpload = (file: File) => {
+const handleFileUpload = async (file: File) => {
   if (!file) return
   console.log("File diterima:", file);
-  alert(`File berhasil diupload: ${file.name}`)
-  router.push('/analisis/readability')
-
-  /*
+  
   try {
-    // Munculkan overlay loading
     loading.value = true
     
-    // Kirim file ke backend
-    const formData = new FormData()
-    formData.append('file', file)
+    // Check backend health first
+    const isBackendHealthy = await ApiService.healthCheck()
+    if (!isBackendHealthy) {
+      throw new Error('Backend tidak dapat dijangkau. Pastikan server berjalan di localhost:8000')
+    }
 
-    const response = await fetch('https://readasense.up.railway.app/analyze', {
-      method: 'POST',
-      body: formData,
-    })
+    // Analisis file menggunakan service
+    const result = await ApiService.analyzeFile(file)
+    console.log('Hasil analisis:', result)
 
-    if (!response.ok) throw new Error('Upload gagal')
+    if (!result.success) {
+      throw new Error('Analisis gagal')
+    }
 
-    const result = await response.json()
-
-    // Simpan hasil ke localStorage untuk digunakan di halaman analisis
+    // Simpan hasil ke localStorage
     localStorage.setItem('analysisResult', JSON.stringify(result))
 
-    // Arahkan ke halaman hasil
+    // Redirect ke hasil analisis
     router.push('/analisis/readability')
   } catch (error) {
-    console.error(error)
-    alert('Terjadi kesalahan saat mengupload file.')
+    console.error('Error:', error)
+    let errorMessage = error.message
+    
+    // Handle specific error cases for file upload
+    if (error.message.includes('400')) {
+      errorMessage = 'Format file tidak didukung atau file bermasalah. Gunakan file .txt, .pdf, atau .docx yang valid'
+    } else if (error.message.includes('413')) {
+      errorMessage = 'File terlalu besar. Maksimal 10MB'
+    } else if (error.message.includes('network') || error.message.includes('fetch')) {
+      errorMessage = 'Koneksi bermasalah. Pastikan backend berjalan di localhost:8000'
+    }
+    
+    alert(`Terjadi kesalahan: ${errorMessage}`)
   } finally {
     loading.value = false
   }
-  */
 }
 
 const handleUrlUpload = async (url: string) => {
+  if (!url) return
   console.log("URL diterima:", url);
-  alert(`URL berhasil diupload: ${url}`)
-  router.push('/analisis/readability')
+  
+  try {
+    loading.value = true
+    
+    // Check backend health first
+    const isBackendHealthy = await ApiService.healthCheck()
+    if (!isBackendHealthy) {
+      throw new Error('Backend tidak dapat dijangkau. Pastikan server berjalan di localhost:8000')
+    }
+
+    // Analisis URL sebagai teks
+    const result = await ApiService.analyzeText(`Analisis konten dari URL: ${url}`)
+    console.log('Hasil analisis URL:', result)
+
+    if (!result.success) {
+      throw new Error('Analisis URL gagal')
+    }
+
+    localStorage.setItem('analysisResult', JSON.stringify(result))
+    router.push('/analisis/readability')
+  } catch (error) {
+    console.error('Error:', error)
+    alert(`Terjadi kesalahan: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
+};
+
+const handleTextUpload = async (text: string) => {
+  if (!text || text.length < 10) {
+    alert('Teks terlalu pendek untuk dianalisis')
+    return
+  }
+  
+  console.log("Teks diterima:", text.substring(0, 100) + '...');
+  
+  try {
+    loading.value = true
+    
+    // Check backend health first
+    const isBackendHealthy = await ApiService.healthCheck()
+    if (!isBackendHealthy) {
+      throw new Error('Backend tidak dapat dijangkau. Pastikan server berjalan di localhost:8000')
+    }
+
+    // Analisis teks langsung
+    const result = await ApiService.analyzeText(text)
+    console.log('Hasil analisis teks:', result)
+
+    if (!result.success) {
+      throw new Error('Analisis teks gagal')
+    }
+
+    localStorage.setItem('analysisResult', JSON.stringify(result))
+    router.push('/analisis/readability')
+  } catch (error) {
+    console.error('Error:', error)
+    alert(`Terjadi kesalahan: ${error.message}`)
+  } finally {
+    loading.value = false
+  }
 };
 </script>
 

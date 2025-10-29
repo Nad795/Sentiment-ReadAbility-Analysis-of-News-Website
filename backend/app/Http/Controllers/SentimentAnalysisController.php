@@ -4,12 +4,32 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Config;
 
 class SentimentAnalysisController extends Controller
 {
+    // Health check endpoint
+    public function health()
+    {
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Laravel API is running',
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     // Fungsi utama API
     public function analyze(Request $request)
     {
+        // Health check dengan parameter khusus
+        if ($request->input('text') === 'health-check') {
+            return response()->json([
+                'status' => 'ok',
+                'message' => 'Laravel API is running',
+                'timestamp' => date('Y-m-d H:i:s')
+            ]);
+        }
+
         // Handle file upload atau text input
         if ($request->hasFile('file')) {
             $text = $this->extractTextFromFile($request->file('file'));
@@ -19,6 +39,7 @@ class SentimentAnalysisController extends Controller
 
         if (!$text) {
             return response()->json([
+                'success' => false,
                 'error' => 'Text or file is required'
             ], 400);
         }
@@ -29,8 +50,12 @@ class SentimentAnalysisController extends Controller
         // Analisis Keterbacaan (Flesch Reading Ease)
         $readability = $this->analyzeReadability($text);
 
+        // Match sample response: truncate text to 500 chars with ellipsis
+        $displayText = strlen($text) > 500 ? substr($text, 0, 500).'...' : $text;
+
         return response()->json([
-            'text' => $text,
+            'success' => true,
+            'text' => $displayText,
             'sentiment' => $sentimentResult['sentiment'],
             'sentiment_score' => $sentimentResult['score'],
             'sentiment_details' => $sentimentResult['details'],
@@ -38,30 +63,75 @@ class SentimentAnalysisController extends Controller
             'readability_category' => $this->getReadabilityCategory($readability),
             'word_count' => str_word_count($text),
             'sentence_count' => count(preg_split('/[.!?]+/', $text, -1, PREG_SPLIT_NO_EMPTY))
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
     private function extractTextFromFile($file)
     {
-        $extension = $file->getClientOriginalExtension();
+        $extension = strtolower($file->getClientOriginalExtension());
+        $filePath = $file->getRealPath();
 
         if ($extension === 'txt') {
-            return file_get_contents($file->getRealPath());
+            return file_get_contents($filePath);
         } elseif ($extension === 'pdf') {
-            // TODO: Implement PDF text extraction (need smalot/pdfparser)
-            return "PDF extraction not yet implemented. Please use .txt file.";
-        } elseif (in_array($extension, ['doc', 'docx'])) {
-            // TODO: Implement DOCX text extraction (need phpoffice/phpword)
-            return "DOCX extraction not yet implemented. Please use .txt file.";
+            // Extract text from PDF using pdftotext
+            if (shell_exec('which pdftotext')) {
+                $output = shell_exec("pdftotext '$filePath' -");
+                if ($output && strlen(trim($output)) > 0) {
+                    return trim($output);
+                }
+            }
+            throw new \Exception('Unable to extract text from PDF. Please try converting to .txt format first.');
+        } elseif ($extension === 'docx') {
+            // Extract text from DOCX using ZipArchive
+            if (!class_exists('ZipArchive')) {
+                throw new \Exception('ZipArchive class not available for DOCX processing.');
+            }
+            
+            $zip = new \ZipArchive;
+            if ($zip->open($filePath) !== true) {
+                throw new \Exception('Unable to open DOCX file.');
+            }
+            
+            $xmlContent = $zip->getFromName('word/document.xml');
+            $zip->close();
+            
+            if ($xmlContent === false) {
+                throw new \Exception('Unable to extract content from DOCX file.');
+            }
+            
+            // Parse XML to extract text
+            try {
+                $dom = new \DOMDocument();
+                $dom->loadXML($xmlContent);
+                
+                $textNodes = $dom->getElementsByTagName('t');
+                $text = '';
+                
+                foreach ($textNodes as $node) {
+                    $text .= $node->nodeValue . ' ';
+                }
+                
+                // Clean up text
+                $text = preg_replace('/\s+/', ' ', $text);
+                return trim($text);
+                
+            } catch (\Exception $e) {
+                // Fallback: simple strip_tags
+                $text = strip_tags($xmlContent);
+                $text = html_entity_decode($text);
+                $text = preg_replace('/\s+/', ' ', $text);
+                return trim($text);
+            }
         }
 
-        return null;
+        throw new \Exception('Supported file formats: .txt, .pdf, and .docx');
     }
 
     private function analyzeSentiment($text)
     {
-        $apiKey = env('GEMINI_API_KEY');
-        $apiUrl = env('GEMINI_API_URL');
+        $apiKey = \Illuminate\Support\Facades\Config::get('app.gemini_api_key') ?? $_ENV['GEMINI_API_KEY'] ?? '';
+        $apiUrl = \Illuminate\Support\Facades\Config::get('app.gemini_api_url') ?? $_ENV['GEMINI_API_URL'] ?? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
         // Prompt untuk Gemini
         $prompt = "Analisis sentimen dari berita berikut: '{$text}'. " .

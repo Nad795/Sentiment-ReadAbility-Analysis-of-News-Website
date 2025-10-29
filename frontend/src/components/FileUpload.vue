@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 
-const emit = defineEmits(["file-uploaded", "url-uploaded"]);
+const emit = defineEmits(["file-uploaded", "url-uploaded", "text-uploaded"]);
 
 const isDragging = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -64,7 +64,7 @@ const onFileSelect = (e: Event) => {
     if (file) emit("file-uploaded", file);
 };
 
-// ===== PASTE FILE / URL =====
+// ===== PASTE FILE / URL / TEXT =====
 const onPaste = (e: ClipboardEvent) => {
   // Prioritaskan file dulu
     const pastedFile = e.clipboardData?.files?.[0];
@@ -75,8 +75,13 @@ const onPaste = (e: ClipboardEvent) => {
 
   // Kalau tidak ada file, coba ambil teks
     const text = e.clipboardData?.getData("text");
-    if (text && text.startsWith("http")) {
-        emit("url-uploaded", text.trim());
+    if (text) {
+        if (text.startsWith("http")) {
+            emit("url-uploaded", text.trim());
+        } else if (text.length > 10) {
+            // Jika teks cukup panjang, anggap sebagai teks untuk dianalisis
+            emit("text-uploaded", text.trim());
+        }
     }
 };
 

@@ -20,7 +20,7 @@
             >
               <Icon
                 icon="mdi:help-circle-outline"
-                class="text-xl text-primarypurle"
+                class="text-xl text-primarypurple"
               />
             </span>
           </h2>
@@ -158,7 +158,7 @@
       <!-- === KANAN: Detail Sentimen === -->
       <div class="flex flex-col gap-6">
         <!-- 3 Box: Positif Negatif Netral -->
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="grid grid-cols-3 gap-4">
           <!---<Positif>--->
            <div class="sentiment-card positive-card">
             <div class="items-center justify-start">
@@ -247,7 +247,7 @@
         <div
           class="flex flex-col p-6 overflow-hidden bg-transparent border-4 border-white shadow rounded-2xl"
         >
-          <div class="pr-2 overflow-y-auto" style="max-height: 350px">
+          <div class="pr-2 overflow-y-auto overflow-x-auto" style="max-height: 350px">
             <!-- Table Entitas -->
             <div class="border-b pb-4 mb-6 last:border-none last:pb-0">
               <div class="flex justify-between items-center py-3 cursor-pointer select-none" @click="toggleExpand('entitas')">
@@ -272,12 +272,12 @@
                 </svg>
               </div>
               <transition name="fade-slide">
-                <table v-show="expanded.entitas" class="w-full text-sm text-left border-collapse">
+                <table v-show="expanded.entitas" class="w-full text-sm text-left border-collapse table-fixed min-w-[640px]">
                   <thead class="text-gray-600">
                     <tr class="border-b border-gray-200">
-                      <th class="p-2 text-center">Entitas</th>
-                      <th class="p-2 text-center">Magnitudo</th>
-                      <th class="p-2 text-center">Skor Sentimen</th>
+                      <th class="p-2 text-center w-1/3">Entitas</th>
+                      <th class="p-2 text-center w-1/3">Magnitudo</th>
+                      <th class="p-2 text-center w-1/3">Skor Sentimen</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -289,10 +289,10 @@
                         backgroundColor: i % 2 === 0 ? '#C9DEFB' : 'transparent',
                       }"
                     >
-                      <td class="p-2">{{ e.nama }}</td>
-                      <td class="p-2 text-center">{{ e.magnitudo }}</td>
+                      <td class="p-2 w-1/3">{{ e.nama }}</td>
+                      <td class="p-2 text-center w-1/3">{{ e.magnitudo }}</td>
                       <td
-                        class="p-2 font-semibold text-center"
+                        class="p-2 font-semibold text-center w-1/3"
                         :style="{ backgroundColor: getSentimentColor(e.sentimen) }"
                       >
                         {{ e.sentimen > 0 ? "+" : "" }}{{ e.sentimen.toFixed(2) }}
@@ -327,12 +327,12 @@
                 </svg>
               </div>
               <transition name="fade-slide">
-                <table v-show="expanded.tema" class="w-full text-sm text-left border-collapse">
+                <table v-show="expanded.tema" class="w-full text-sm text-left border-collapse table-fixed min-w-[640px]">
                   <thead class="text-gray-600">
                     <tr class="border-b border-gray-200">
-                      <th class="p-2 text-center">Tema</th>
-                      <th class="p-2 text-center">Magnitudo</th>
-                      <th class="p-2 text-center">Skor Sentimen</th>
+                      <th class="p-2 text-center w-1/3">Tema</th>
+                      <th class="p-2 text-center w-1/3">Magnitudo</th>
+                      <th class="p-2 text-center w-1/3">Skor Sentimen</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -344,10 +344,10 @@
                         backgroundColor: i % 2 === 0 ? '#C9DEFB' : 'transparent',
                       }"
                     >
-                      <td class="p-2">{{ t.nama }}</td>
-                      <td class="p-2 text-center">{{ t.magnitudo }}</td>
+                      <td class="p-2 w-1/3">{{ t.nama }}</td>
+                      <td class="p-2 text-center w-1/3">{{ t.magnitudo }}</td>
                       <td
-                        class="p-2 font-semibold text-center"
+                        class="p-2 font-semibold text-center w-1/3"
                         :style="{ backgroundColor: getSentimentColor(t.sentimen) }"
                       >
                         {{ t.sentimen > 0 ? "+" : "" }}{{ t.sentimen.toFixed(2) }}
@@ -369,73 +369,91 @@ import { ref, onMounted, watch } from "vue";
 import Tooltip from '@/components/Tooltip.vue'
 
 const sentimentData = ref({
-    positive: 50.0,
-    negative: 25.0,
-    neutral: 25.0,
-    overallScore: 0.50,
-    overallSentiment: 'positif'
-});
-
-const entitasData = [
-  { nama: "ITS", magnitudo: 2.0, sentimen: 0.78 },
-  { nama: "Surabaya", magnitudo: 3.0, sentimen: 0.63 },
-  { nama: "Gedung DPR", magnitudo: 5.4, sentimen: -0.88 },
-];
-
-const temaData = [
-  { nama: "Kampus", magnitudo: 1.8, sentimen: 0.25 },
-  { nama: "Mahasiswa", magnitudo: 2.5, sentimen: 0.2 },
-  { nama: "Kebijakan", magnitudo: 4.0, sentimen: -0.65 },
-];
-
-// === Ambil data ===
-/* 
-const sentimentData = ref({
-  positive: 0,
-  negative: 0,
-  neutral: 0,
-  overallScore: 0,
-  overallSentiment: ''
+    positive: 0.0,
+    negative: 0.0,
+    neutral: 100.0,
+    overallScore: 0.0,
+    overallSentiment: 'netral'
 });
 
 const entitasData = ref([]);
 const temaData = ref([]);
 
+// === Load data dari backend ===
 onMounted(() => {
-  const stored = localStorage.getItem("sentimentResult");
-  if (stored) {
-    const parsed = JSON.parse(stored);
-    const sentiment = parsed.sentiment;
-    sentimentData.value = {
-      positive: sentiment.positive ?? 0,
-      negative: sentiment.negative ?? 0,
-      neutral: sentiment.neutral ?? 0,
-      overallScore: sentiment.overallScore ?? 0,
-      overallSentiment: sentiment.overallSentiment ?? 'netral'
-    };
-    entitasData.value = sentiment.entities ?? [];
-    temaData.value = sentiment.themes ?? [];
-  } else {
-    sentimentData.value = {
-      positive: 50.0,
-      negative: 25.0,
-      neutral: 25.0,
-      overallScore: 0.50,
-      overallSentiment: 'positif'
-    };
-    entitasData.value = [
-      { nama: "ITS", magnitudo: 2.0, sentimen: 0.78 },
-      { nama: "Surabaya", magnitudo: 3.0, sentimen: 0.63 },
-      { nama: "Gedung DPR", magnitudo: 5.4, sentimen: -0.88 },
-    ];
-    temaData.value = [
-      { nama: "Kampus", magnitudo: 1.8, sentimen: 0.25 },
-      { nama: "Mahasiswa", magnitudo: 2.5, sentimen: 0.2 },
-      { nama: "Kebijakan", magnitudo: 4.0, sentimen: -0.65 },
-    ];
+  const saved = localStorage.getItem('analysisResult')
+  if (!saved) {
+    console.log('Tidak ada data analisis sentiment. Menggunakan data default.')
+    return
   }
-});
-*/
+
+  try {
+    const parsed = JSON.parse(saved)
+    console.log('Data sentiment ditemukan:', parsed)
+
+    if (parsed.sentiment && parsed.sentiment_score !== undefined) {
+      const sentimentLabel = parsed.sentiment.toLowerCase()
+      const sentimentScore = parseFloat(parsed.sentiment_score) || 0
+
+      // Konversi skor sentiment dari backend (-1 to 1) ke persentase
+      let positive = 0, negative = 0, neutral = 100
+
+      if (sentimentLabel.includes('positive') || sentimentLabel.includes('positif')) {
+        positive = (sentimentScore * 100).toFixed(1)
+        negative = ((1 - sentimentScore) * 30).toFixed(1) // Sisa dibagi antara negative dan neutral
+        neutral = (100 - positive - negative).toFixed(1)
+        sentimentData.value.overallSentiment = 'positif'
+      } else if (sentimentLabel.includes('negative') || sentimentLabel.includes('negatif')) {
+        negative = (Math.abs(sentimentScore) * 100).toFixed(1)
+        positive = ((1 - Math.abs(sentimentScore)) * 20).toFixed(1)
+        neutral = (100 - negative - positive).toFixed(1)
+        sentimentData.value.overallSentiment = 'negatif'
+      } else {
+        // Neutral
+        neutral = 60
+        positive = 25
+        negative = 15
+        sentimentData.value.overallSentiment = 'netral'
+      }
+
+      sentimentData.value = {
+        positive: parseFloat(positive),
+        negative: parseFloat(negative),
+        neutral: parseFloat(neutral),
+        overallScore: sentimentScore,
+        overallSentiment: sentimentData.value.overallSentiment
+      }
+
+      // Parse entitas dan tema dari sentiment_details jika tersedia
+      if (parsed.sentiment_details) {
+        // Ekstrak entitas dari teks analisis (simplified)
+        const details = parsed.sentiment_details.toLowerCase()
+        const sampleEntitas = []
+        const sampleTema = []
+
+        // Deteksi beberapa entitas umum dari teks
+        if (details.includes('presiden')) sampleEntitas.push({ nama: "Presiden", magnitudo: 3.0, sentimen: sentimentScore })
+        if (details.includes('pemerintah')) sampleEntitas.push({ nama: "Pemerintah", magnitudo: 4.0, sentimen: sentimentScore })
+        if (details.includes('rakyat')) sampleEntitas.push({ nama: "Rakyat", magnitudo: 2.5, sentimen: sentimentScore * 0.8 })
+        if (details.includes('bantuan')) sampleTema.push({ nama: "Bantuan Sosial", magnitudo: 3.5, sentimen: sentimentScore })
+        if (details.includes('korupsi')) {
+          sampleTema.push({ nama: "Korupsi", magnitudo: 5.0, sentimen: -0.8 })
+          sampleEntitas.push({ nama: "Lembaga Negara", magnitudo: 4.5, sentimen: -0.7 })
+        }
+
+        entitasData.value = sampleEntitas.length > 0 ? sampleEntitas : [
+          { nama: "Entitas Terdeteksi", magnitudo: 2.0, sentimen: sentimentScore }
+        ]
+        
+        temaData.value = sampleTema.length > 0 ? sampleTema : [
+          { nama: "Tema Utama", magnitudo: 3.0, sentimen: sentimentScore }
+        ]
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing sentiment result:', error)
+  }
+})
 
 const radius = 108;
 const circumference = 2 * Math.PI * radius;
